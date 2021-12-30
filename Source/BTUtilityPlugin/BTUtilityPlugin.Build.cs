@@ -7,6 +7,7 @@ public class BTUtilityPlugin : ModuleRules
 	public BTUtilityPlugin(ReadOnlyTargetRules Target): base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+        bLegacyPublicIncludePaths = true;
 
         PrivateIncludePaths.Add("BTUtilityPlugin/Private");
 

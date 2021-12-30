@@ -2,6 +2,7 @@
 #pragma once
 
 #include "Decorators/BTDecorator_UtilityFunction.h"
+#include "Composites/BTComposite_Utility.h"
 #include "BTDecorator_UtilityConstant.generated.h"
 
 /**
@@ -16,14 +17,19 @@ class BTUTILITYPLUGIN_API UBTDecorator_UtilityConstant : public UBTDecorator_Uti
 public:
 	UBTDecorator_UtilityConstant(const FObjectInitializer& ObjectInitializer);
 
+// 	UPROPERTY(EditAnywhere, Category = "Utility")
+// 	float UtilityValue;
+
 	UPROPERTY(EditAnywhere, Category = "Utility")
-	float UtilityValue;
+	FBTUtilityScoreWeight _scoreWeight;
 
 	virtual FString GetStaticDescription() const override;
 	virtual void DescribeRuntimeValues(const UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTDescriptionVerbosity::Type Verbosity, TArray<FString>& Values) const override;
 
 protected:
-	virtual float CalculateUtilityValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const override;
+	//virtual float CalculateUtilityValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const override;
+	virtual struct FBTUtilityScoreWeight CalculateUtilityValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const override;
+
 };
 
 

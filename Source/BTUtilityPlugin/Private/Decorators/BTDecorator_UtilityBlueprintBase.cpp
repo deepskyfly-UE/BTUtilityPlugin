@@ -3,6 +3,7 @@
 #include "Decorators/BTDecorator_UtilityBlueprintBase.h"
 
 #include "AIController.h"
+#include "BTComposite_Utility.h"
 
 
 UBTDecorator_UtilityBlueprintBase::UBTDecorator_UtilityBlueprintBase(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
@@ -22,14 +23,9 @@ UBTDecorator_UtilityBlueprintBase::UBTDecorator_UtilityBlueprintBase(const FObje
 	*/
 }
 
-float UBTDecorator_UtilityBlueprintBase::CalculateUtilityValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const
+FBTUtilityScoreWeight UBTDecorator_UtilityBlueprintBase::CalculateUtilityValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const
 {
-	APawn* ControlledPawn = nullptr;
-	if (AIOwner)
-	{
-		ControlledPawn = AIOwner->GetPawn();
-	}
-	return CalculateUtility(AIOwner, ControlledPawn);
+	return CalculateUtility(AIOwner, Cast< APawn >(ActorOwner));
 }
 
 FString UBTDecorator_UtilityBlueprintBase::GetStaticDescription() const

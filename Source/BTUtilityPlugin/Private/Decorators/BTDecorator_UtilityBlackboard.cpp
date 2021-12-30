@@ -23,22 +23,22 @@ void UBTDecorator_UtilityBlackboard::InitializeFromAsset(UBehaviorTree& Asset)
 	UtilityValueKey.ResolveSelectedKey(*GetBlackboardAsset());
 }
 
-float UBTDecorator_UtilityBlackboard::CalculateUtilityValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const
-{
-	const UBlackboardComponent* MyBlackboard = OwnerComp.GetBlackboardComponent();
-	float Value = 0.0f;
-
-	if (UtilityValueKey.SelectedKeyType == UBlackboardKeyType_Float::StaticClass())
-	{
-		Value = MyBlackboard->GetValue< UBlackboardKeyType_Float >(UtilityValueKey.GetSelectedKeyID());
-	}
-	else if (UtilityValueKey.SelectedKeyType == UBlackboardKeyType_Int::StaticClass())
-	{
-		Value = (float)MyBlackboard->GetValue< UBlackboardKeyType_Int >(UtilityValueKey.GetSelectedKeyID());
-	}
-
-	return FMath::Max(Value, 0.0f);
-}
+// float UBTDecorator_UtilityBlackboard::CalculateUtilityValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const
+// {
+// 	const UBlackboardComponent* MyBlackboard = OwnerComp.GetBlackboardComponent();
+// 	float Value = 0.0f;
+// 
+// 	if (UtilityValueKey.SelectedKeyType == UBlackboardKeyType_Float::StaticClass())
+// 	{
+// 		Value = MyBlackboard->GetValue< UBlackboardKeyType_Float >(UtilityValueKey.GetSelectedKeyID());
+// 	}
+// 	else if (UtilityValueKey.SelectedKeyType == UBlackboardKeyType_Int::StaticClass())
+// 	{
+// 		Value = (float)MyBlackboard->GetValue< UBlackboardKeyType_Int >(UtilityValueKey.GetSelectedKeyID());
+// 	}
+// 
+// 	return FMath::Max(Value, 0.0f);
+// }
 
 FString UBTDecorator_UtilityBlackboard::GetStaticDescription() const
 {

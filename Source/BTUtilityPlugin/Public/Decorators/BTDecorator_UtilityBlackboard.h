@@ -33,7 +33,7 @@ protected:
 	struct FBlackboardKeySelector UtilityValueKey;
 
 protected:
-	virtual float CalculateUtilityValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const override;
+	//virtual float CalculateUtilityValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const override;
 };
 
 //////////////////////////////////////////////////////////////////////////

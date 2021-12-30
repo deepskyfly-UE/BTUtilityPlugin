@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 
 
-#define MAX_UTILITY_CHILDREN 16
+#define MAX_UTILITY_CHILDREN 32
 
 
 typedef TArray< uint8, TFixedAllocator< MAX_UTILITY_CHILDREN > > FUtilityExecutionOrdering;

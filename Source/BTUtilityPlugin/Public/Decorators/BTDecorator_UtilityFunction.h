@@ -17,12 +17,23 @@ class BTUTILITYPLUGIN_API UBTDecorator_UtilityFunction : public UBTDecorator
 public:
 	UBTDecorator_UtilityFunction(const FObjectInitializer& ObjectInitializer);
 
+
+	/** wrapper for node instancing: CalculateUtilityValue */
+	struct FBTUtilityScoreWeight WrappedCalculateUtility(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const;
+
+protected:
+	/** Calculates the utility value of the associated behavior node. */
+	virtual FBTUtilityScoreWeight CalculateUtilityValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const;
+
+#if 0
 	/** wrapper for node instancing: CalculateUtilityValue */
 	float WrappedCalculateUtility(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const;
 
 protected:
 	/** Calculates the utility value of the associated behavior node. */
 	virtual float CalculateUtilityValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const;
+
+#endif
 };
 
 

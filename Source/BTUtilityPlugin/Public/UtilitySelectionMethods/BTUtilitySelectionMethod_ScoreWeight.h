@@ -11,7 +11,7 @@ namespace UtilitySelection
 	* Proportional selection.
 	* Nodes are chosen with a probability proportional to their utility value.
 	*/
-	void ProportionalOrdering(TArray< FBTUtilityScoreWeight > const& UtilityValues, FUtilityExecutionOrdering& ExecutionOrdering);
+	void ScoreWeightOrdering(TArray< FBTUtilityScoreWeight > const& UtilityValues, FUtilityExecutionOrdering& ExecutionOrdering);
 }
 
 

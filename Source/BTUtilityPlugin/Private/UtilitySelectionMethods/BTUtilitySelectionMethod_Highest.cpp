@@ -1,16 +1,17 @@
 // Copyright 2015 Cameron Angus. All Rights Reserved.
 
 #include "UtilitySelectionMethods/BTUtilitySelectionMethod_Highest.h"
+#include "BTComposite_Utility.h"
 
 
 namespace UtilitySelection
 {
-	void PriorityOrdering(TArray< float > const& UtilityValues, FUtilityExecutionOrdering& ExecutionOrdering)
+	void PriorityOrdering(TArray< FBTUtilityScoreWeight > const& UtilityValues, FUtilityExecutionOrdering& ExecutionOrdering)
 	{
 		struct FIndexedUtilityValue
 		{
 			int32 ChildIdx;
-			float Value;
+			int32 Value;
 
 			inline bool operator< (FIndexedUtilityValue const& Other) const
 			{
@@ -25,7 +26,7 @@ namespace UtilitySelection
 		for (int32 ChildIdx = 0; ChildIdx < Count; ++ChildIdx)
 		{
 			IndexedValues[ChildIdx].ChildIdx = ChildIdx;
-			IndexedValues[ChildIdx].Value = UtilityValues[ChildIdx];
+			IndexedValues[ChildIdx].Value = UtilityValues[ChildIdx]._score;
 		}
 
 		IndexedValues.Sort();

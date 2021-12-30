@@ -4,16 +4,16 @@
 #include "Decorators/BTDecorator_UtilityFunction.h"
 #include "UtilitySelectionMethods/BTUtilitySelectionMethod_Highest.h"
 #include "UtilitySelectionMethods/BTUtilitySelectionMethod_Proportional.h"
-
+#include "BTUtilitySelectionMethod_ScoreWeight.h"
 
 UBTComposite_Utility::UBTComposite_Utility(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	NodeName = "Utility";
 	bUseNodeActivationNotify = true;
 
-	SelectionMethod = EUtilitySelectionMethod::Priority;
+	SelectionMethod = EUtilitySelectionMethod::ScoreWeight;
 
-	OnNextChild.BindUObject(this, &UBTComposite_Utility::GetNextChildHandler);
+	//OnNextChild.BindUObject(this, &UBTComposite_Utility::GetNextChildHandler);
 }
 
 void UBTComposite_Utility::InitializeMemory(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTMemoryInit::Type InitType) const
@@ -30,11 +30,14 @@ FString UBTComposite_Utility::GetStaticDescription() const
 {
 	switch (SelectionMethod)
 	{
-	case EUtilitySelectionMethod::Priority:
-		return TEXT("Priority selection");
+	case EUtilitySelectionMethod::ScoreOnly:
+		return TEXT("ScoreOnly selection");
 
-	case EUtilitySelectionMethod::Proportional:
-		return TEXT("Proportional selection");
+	case EUtilitySelectionMethod::WeightOnly:
+		return TEXT("WeightOnly selection");
+
+	case EUtilitySelectionMethod::ScoreWeight:
+		return TEXT("ScoreWeight selection");
 
 	default:
 		check(false);
@@ -42,22 +45,67 @@ FString UBTComposite_Utility::GetStaticDescription() const
 	}
 }
 
-const UBTDecorator_UtilityFunction* UBTComposite_Utility::FindChildUtilityFunction(int32 ChildIndex) const
+void UBTComposite_Utility::DescribeRuntimeValues(const UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTDescriptionVerbosity::Type Verbosity, TArray<FString>& Values) const
 {
+	Super::DescribeRuntimeValues(OwnerComp,NodeMemory,Verbosity,Values);
+#if WITH_EDITOR
+	if(!OwnerComp.IsRunning())
+		return;
+
+	FBTUtilityMemory* mem = reinterpret_cast<FBTUtilityMemory*>(NodeMemory);
+	for (int i=0;i<mem->ExecutionOrdering.Num();i++)
+	{
+		int id = mem->ExecutionOrdering[i];
+		if(id >=0 && id <  mem->UtilityValues.Num())
+		{
+			FBTUtilityScoreWeight& value = mem->UtilityValues[id];
+			if (GetChildNode(id))
+			{
+				Values.Add(FString::Printf(TEXT("%s [%d, %d]"), *GetChildNode(id)->GetNodeName(), value._score,value._weight));
+			}
+			else
+			{
+				Values.Add(FString::Printf(TEXT("%s [%d, %d]"), TEXT("None"), value._score, value._weight));
+			}
+		}
+
+	}
+#endif
+}
+
+// const UBTDecorator_UtilityFunction* UBTComposite_Utility::FindChildUtilityFunction(int32 ChildIndex) const
+// {
+// 	auto const& ChildInfo = Children[ChildIndex];
+// 	for (auto Dec : ChildInfo.Decorators)
+// 	{
+// 		auto AsUtilFunc = Cast< UBTDecorator_UtilityFunction >(Dec);
+// 		if (AsUtilFunc)
+// 		{
+// 			// Take the first one. Multiple utility function decorators on a single node is a user
+// 			// error, and generates a warning in the behavior tree editor.
+// 			return AsUtilFunc;
+// 		}
+// 	}
+// 
+// 	// Child does not have a utility function decorator
+// 	return nullptr;
+// }
+
+FBTUtilityScoreWeight UBTComposite_Utility::GetChildUtilityScore(FBehaviorTreeSearchData& SearchData,int32 ChildIndex) const
+{
+	FBTUtilityScoreWeight retScore;
+
 	auto const& ChildInfo = Children[ChildIndex];
 	for (auto Dec : ChildInfo.Decorators)
 	{
 		auto AsUtilFunc = Cast< UBTDecorator_UtilityFunction >(Dec);
 		if (AsUtilFunc)
 		{
-			// Take the first one. Multiple utility function decorators on a single node is a user
-			// error, and generates a warning in the behavior tree editor.
-			return AsUtilFunc;
+			retScore.Add(AsUtilFunc->WrappedCalculateUtility(SearchData.OwnerComp,GetNodeMemory< uint8 >(SearchData)));
 		}
 	}
 
-	// Child does not have a utility function decorator
-	return nullptr;
+	return retScore;
 }
 
 #if 0
@@ -81,21 +129,17 @@ bool UBTComposite_Utility::ShouldConsiderChild(UBehaviorTreeComponent& OwnerComp
 }
 #endif
 
-bool UBTComposite_Utility::EvaluateUtilityScores(FBehaviorTreeSearchData& SearchData, TArray< float >& OutScores) const
+bool UBTComposite_Utility::EvaluateUtilityScores(FBehaviorTreeSearchData& SearchData, TArray< FBTUtilityScoreWeight >& OutScores) const
 {
 	bool bIsNonZeroScore = false;
 	// Loop through utility children
 	for(int32 Idx = 0; Idx < GetChildrenNum(); ++Idx)
 	{
-		auto UtilityFunc = FindChildUtilityFunction(Idx);
-		
 		// Calculate utility value
-		auto Score = UtilityFunc ?
-			UtilityFunc->WrappedCalculateUtility(SearchData.OwnerComp, UtilityFunc->GetNodeMemory< uint8 >(SearchData)) :
-			0.0f;
+		auto Score = GetChildUtilityScore(SearchData,Idx);
 
 		OutScores.Add(Score);
-		bIsNonZeroScore = bIsNonZeroScore || Score > 0.0f;
+		bIsNonZeroScore = bIsNonZeroScore || !Score.IsEmpty();
 	}
 
 	return bIsNonZeroScore;
@@ -106,17 +150,24 @@ void UBTComposite_Utility::NotifyNodeActivation(FBehaviorTreeSearchData& SearchD
 	FBTUtilityMemory* NodeMemory = GetNodeMemory<FBTUtilityMemory>(SearchData);
 
 	// Evaluate utility scores for each child
-	TArray< float > UtilityValues;
+	TArray< FBTUtilityScoreWeight > UtilityValues;
 	bool bNonZeroUtility = EvaluateUtilityScores(SearchData, UtilityValues);
+
+#if WITH_EDITOR
+	NodeMemory->UtilityValues = UtilityValues;
+#endif
 
 	// Generate ordering
 	switch (SelectionMethod)
 	{
-	case EUtilitySelectionMethod::Priority:
+	case EUtilitySelectionMethod::ScoreOnly:
 		UtilitySelection::PriorityOrdering(UtilityValues, NodeMemory->ExecutionOrdering);
 		break;
-	case EUtilitySelectionMethod::Proportional:
+	case EUtilitySelectionMethod::WeightOnly:
 		UtilitySelection::ProportionalOrdering(UtilityValues, NodeMemory->ExecutionOrdering);
+		break;
+	case EUtilitySelectionMethod::ScoreWeight:
+		UtilitySelection::ScoreWeightOrdering(UtilityValues, NodeMemory->ExecutionOrdering);
 		break;
 	default:
 		check(false);

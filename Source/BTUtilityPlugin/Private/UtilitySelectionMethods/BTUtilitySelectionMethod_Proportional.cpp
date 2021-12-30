@@ -1,18 +1,19 @@
 // Copyright 2015 Cameron Angus. All Rights Reserved.
 
 #include "UtilitySelectionMethods/BTUtilitySelectionMethod_Proportional.h"
+#include "BTComposite_Utility.h"
 
 
 template < typename ActiveFilter >
-static int32 ProportionalSelect(TArray< float > const& Values, ActiveFilter const& Filter, float const Sum)
+static int32 ProportionalSelect(TArray< FBTUtilityScoreWeight > const& Values, ActiveFilter const& Filter, int32 const Sum)
 {
-	auto SelectionValue = FMath::FRandRange(0.0f, Sum);
-	auto Cumulative = 0.0f;
+	int32 SelectionValue = FMath::RandRange(0, Sum);
+	int32 Cumulative = 0;
 	for (int32 Idx = 0; Idx < Values.Num(); ++Idx)
 	{
 		if (Filter(Idx))
 		{
-			Cumulative += Values[Idx];
+			Cumulative += Values[Idx]._weight;
 			if (SelectionValue <= Cumulative)
 			{
 				return Idx;
@@ -25,14 +26,14 @@ static int32 ProportionalSelect(TArray< float > const& Values, ActiveFilter cons
 }
 
 template < typename ActiveFilter >
-static int32 ProportionalSelect(TArray< float > const& Values, ActiveFilter const& Filter)
+static int32 ProportionalSelect(TArray< FBTUtilityScoreWeight > const& Values, ActiveFilter const& Filter)
 {
-	float Sum = 0.0f;
+	int32 Sum = 0;
 	for (int32 Idx = 0; Idx < Values.Num(); ++Idx)
 	{
 		if (Filter(Idx))
 		{
-			Sum += Values[Idx];
+			Sum += Values[Idx]._weight;
 		}
 	}
 
@@ -42,15 +43,15 @@ static int32 ProportionalSelect(TArray< float > const& Values, ActiveFilter cons
 
 namespace UtilitySelection
 {
-	void ProportionalOrdering(TArray< float > const& UtilityValues, FUtilityExecutionOrdering& ExecutionOrdering)
+	void ProportionalOrdering(TArray< FBTUtilityScoreWeight > const& UtilityValues, FUtilityExecutionOrdering& ExecutionOrdering)
 	{
 		auto const Count = UtilityValues.Num();
 
 		// Calculate the sum of all utility values
-		float UtilitySum = 0.0f;
+		int32 UtilitySum = 0;
 		for (auto Ut : UtilityValues)
 		{
-			UtilitySum += Ut;
+			UtilitySum += Ut._weight;
 		}
 
 		// Create an array denoting which children remain to be chosen
@@ -65,8 +66,8 @@ namespace UtilitySelection
 			ExecutionOrdering.Add(ChildIdx);
 
 			// Reduce the remaining utility sum and remove the child from the remaining array
-			UtilitySum -= UtilityValues[ChildIdx];
-			UtilitySum = FMath::Max(UtilitySum, 0.0f);
+			UtilitySum -= UtilityValues[ChildIdx]._weight;
+			UtilitySum = FMath::Max(UtilitySum, 0);
 			Remaining[ChildIdx] = false;
 		}
 

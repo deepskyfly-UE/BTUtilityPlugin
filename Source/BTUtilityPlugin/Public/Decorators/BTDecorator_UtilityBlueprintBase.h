@@ -16,7 +16,7 @@ class BTUTILITYPLUGIN_API UBTDecorator_UtilityBlueprintBase : public UBTDecorato
 	GENERATED_UCLASS_BODY()
 
 	/* UBTDecorator_UtilityFunction interface */
-	virtual float CalculateUtilityValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const override;
+	virtual struct FBTUtilityScoreWeight CalculateUtilityValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const override;
 	/**/
 
 	virtual FString GetStaticDescription() const override;
@@ -39,7 +39,7 @@ protected:
 
 protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = Utility)
-	float CalculateUtility(AAIController* OwnerController, APawn* ControlledPawn) const;
+	struct FBTUtilityScoreWeight CalculateUtility(AAIController* OwnerController, APawn* ControlledPawn) const;
 };
 
 
